@@ -2,13 +2,34 @@ import { useEffect, useState } from 'react'
 import Banner from './components/Banner'
 import Header from './components/Header'
 import MovieList from './components/MovieList'
+import MovieSearch from './components/MovieSearch'
 
 function App() {
   const [movie, setMovie] = useState([])
   const [movieRate, setMovieRate] = useState([])
+  const [movieSearch, setMovieSearch] = useState([])
+
+  const handleSearch = async (textSearch) => {
+    setMovieSearch([]);
+    try {
+      const url = `https://api.themoviedb.org/3/search/movie?query=${textSearch}&include_adult=false&language=vi&page=1`;
+      const options = {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_API_KEY}`
+        }
+      };
+      const searchMovies = await fetch(url, options);
+      const data = await searchMovies.json();
+      setMovieSearch(data.results);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   useEffect(() => {
-    const fetchMovie = async() =>{
+    const fetchMovie = async () => {
       const options = {
         method: 'GET',
         headers: {
@@ -34,10 +55,17 @@ function App() {
   return (
     <>
       <div className='bg-black pb-10'>
-        <Header />
+        <Header handleSearch={handleSearch} />
         <Banner />
-        <MovieList title={"Phim hot"} data={movie}/>
-        <MovieList title={"Phim đề cử"} data={movieRate}/>
+        {
+          movieSearch.length > 0 ?
+            <MovieSearch title={"Kết quả tìm kiếm"} data={movieSearch} />
+            :
+            <>
+              <MovieList title={"Phim hot"} data={movie} />
+              <MovieList title={"Phim đề cử"} data={movieRate} />
+            </>
+        }
       </div>
     </>
   )
